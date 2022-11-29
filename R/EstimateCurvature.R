@@ -322,7 +322,7 @@ EstimateKappaSet <- function(D,y,z,m,x.set){
 
 #' Estimate Curvature for an input Distance Matrix
 #'
-#' @param D.hat EstimateD Distance matrix
+#' @param D Estimated Distance matrix
 #' @param tri.const Triangle Constant to use for selecting good x points
 #' @param num.midpoints Number of midpoint sets to use
 #' @param d.yz.min Minimum distance of y z pairs to consider
@@ -331,8 +331,7 @@ EstimateKappaSet <- function(D,y,z,m,x.set){
 #'
 #' @return Return estimated values of curvature
 #' @export
-#'
-EstimateCurvature <- function(D.hat,
+EstimateCurvature <- function(D,
                               tri.const = 1.4,
                               num.midpoints = 3,
                               d.yz.min = 1.5,
@@ -340,8 +339,8 @@ EstimateCurvature <- function(D.hat,
                               verbose = F){
 
 
-  mid.search <- optimal_midpoint_search(D.hat,top.k = 10,
-                                        d.yz.min = min(d.yz.min, max(D.hat)/2),
+  mid.search <- optimal_midpoint_search(D,top.k = 10,
+                                        d.yz.min = min(d.yz.min, max(D)/2),
                                         d.yz.max = d.yz.max)
   if(verbose){
     print("Midpoints: ")
@@ -355,13 +354,13 @@ EstimateCurvature <- function(D.hat,
 
   opt.vec <- c(y.opt,z.opt,m.opt)
   if(!any(is.na(opt.vec))){
-    x.set <- filter_indices(D.hat,
+    x.set <- filter_indices(D,
                               y.opt,
                               z.opt,
                               m.opt,
                               tri.const = tri.const)
 
-    kappa.set <- EstimateKappaSet(D.hat,
+    kappa.set <- EstimateKappaSet(D,
                                   y.opt,
                                   z.opt,
                                   m.opt,
@@ -382,20 +381,35 @@ EstimateCurvature <- function(D.hat,
 
 
 
-ConstantCurvatureTest <- function(D, num.points = 3, tri.const = 1.4,
+
+#' Test for Constant curvature of a distance matrix
+#'
+#' @param D Estimated Distance matrix
+#' @param tri.const Triangle Constant to use for selecting good x points
+#' @param num.midpoints Number of midpoint sets to use
+#' @param d.yz.min Minimum distance of y z pairs to consider
+#' @param d.yz.max Maximum distance of y z pairs to consider
+#' @param curve.scale Threshold to use to minimize effect of outliers
+#' @param verbose Additional plotting details
+#'
+#' @return Test for constant curvature of a given distance matrix
+#' @export
+#'
+ConstantCurvatureTest <- function(D, tri.const = 1.4,
+                                  num.midpoints = 3,
                                   d.yz.min = 1.5,
                                   d.yz.max = Inf,
                                   curve.scale = 10,
                                   verbose = F){
 
-  mid.search <- optimal_midpoint_search(D,top.k = num.points,
+  mid.search <- optimal_midpoint_search(D,top.k = num.midpoints,
                                         d.yz.min = min(d.yz.min, max(D)/2),
                                         d.yz.max = d.yz.max)
 
   location.vec <- c()
   curvature.vec <- c()
   rescaled.curvature.vec <- c()
-  K = num.points
+  K = num.midpoints
   for(k in seq(K)){
     y.opt = mid.search[k,1]
     z.opt = mid.search[k,2]

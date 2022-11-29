@@ -88,6 +88,8 @@ CliquesCount <- function(cliques){
 # TODO: Add @examples
 InitD0 <- function(G, cliques, fixed.effect.vec, global.randeff = T, add.offset = 0.001){
 
+  cliques.subset <- CliquesCount(cliques)
+
   G.subset = G[cliques.subset$idx, cliques.subset$idx]
   if(global.randeff){
     K = length(cliques)
