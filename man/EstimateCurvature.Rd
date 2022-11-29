@@ -10,11 +10,11 @@ EstimateCurvature(
   num.midpoints = 3,
   d.yz.min = 1.5,
   d.yz.max = Inf,
-  verbose = T
+  verbose = F
 )
 }
 \arguments{
-\item{D.hat}{Estimated Distance Matrix}
+\item{D.hat}{EstimateD Distance matrix}
 
 \item{tri.const}{Triangle Constant to use for selecting good x points}
 

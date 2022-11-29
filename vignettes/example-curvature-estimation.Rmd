@@ -1,0 +1,20 @@
+---
+title: "example-curvature-estimation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{example-curvature-estimation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lolaR)
+
+```

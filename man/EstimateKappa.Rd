@@ -9,12 +9,11 @@ EstimateKappa(
   dxz,
   dyz,
   dxm,
-  kappa.init = 0,
-  thresh = 10^(-6),
   max.iter = 10,
-  max.curve = Inf,
-  ee.thresh = 0.1,
-  kappa.reset.step = 10
+  ee.thresh = 0.001,
+  abs.ee.thresh = 10^(-9),
+  min.curvature = -5000,
+  init.gridsize = 10000
 )
 }
 \arguments{
@@ -26,17 +25,15 @@ EstimateKappa(
 
 \item{dxm}{Length from point x to the midpoint of y and z}
 
-\item{kappa.init}{Initializing Curvature}
-
-\item{thresh}{Numerical precision}
-
 \item{max.iter}{Maximum number of iterations}
 
-\item{max.curve}{Bound for the Curvature}
+\item{ee.thresh}{Threshold for the ratio of the solution of the estimating function}
 
-\item{ee.thresh}{Threshold for the solution of the estimating function.}
+\item{abs.ee.thresh}{Threshold for the absolute value of the solution of the estimating function}
 
-\item{kappa.reset.step}{}
+\item{min.curvature}{Minimum possible value of curvature}
+
+\item{init.gridsize}{Gridsize to pick for good initialization}
 }
 \value{
 Estimated Curvature Value

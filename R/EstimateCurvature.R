@@ -15,7 +15,7 @@
 #' @return Value of estimating function. This will equal 0 when triangle can be embedded in the space of curvature kappa
 #' @export
 #'
-#' @examples gEF(0,1,1,1)
+#' @examples gEF(0,1,1,1,sqrt(3/4))
 gEF <- function(kappa,dxy,dxz,dyz,dxm){
   # using a single value to construct the estimating function use 0i to compute using complex numbers.
   thresh = 10**(-9)
@@ -108,7 +108,7 @@ gGradKappa <- function(kappa,dxy,dxz,dyz,dxm){
 #'
 #' @examples EstimateKappa(1,1,1,sqrt(3/4))
 EstimateKappa <- function(dxy,dxz,dyz,dxm,
-                          max.iter = 10, ee.thresh = 0.1, abs.ee.thresh = 10**(-9),
+                          max.iter = 10, ee.thresh = 0.001, abs.ee.thresh = 10**(-9),
                           min.curvature = -5000, init.gridsize = 10000){
 
   # first check for whether the midpoint estimate is already too far for any curvature:
@@ -122,43 +122,63 @@ EstimateKappa <- function(dxy,dxz,dyz,dxm,
   # Picking good initialization for Newton Method
   max.curvature = (pi/max(c(dxy,dxz,dyz)))**2
 
-  kap.seq <- seq(min.curvature,max.curvature, length.out = init.gridsize)
-  g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
-  kappa.init <- kap.seq[which.min(abs(g.vec))]
-
+  kap.seq <- c(seq(min.curvature,0, length.out = init.gridsize),
+               seq(0,max.curvature - ee.thresh, length.out = init.gridsize))
+  kap.seq <- kap.seq[-init.gridsize]
 
   suppressWarnings(d.xm.vec <- MidDist(kap.seq,dxy,dxz,dyz))
 
-  kap.seq <- seq(min.curvature,0, 1)
-  d.xm.vec <- c()
-  for(kap in kap.seq){
-    suppressWarnings(d.xm.vec <- c(d.xm.vec, MidDist(kap,dxy,dxz,dyz)))
-  }
   min.dxm = min(d.xm.vec, na.rm = T)
   max.dxm = max(d.xm.vec, na.rm = T)
-
-  # cases for impossible midpoint distances
   if(any(is.na(c(dxy,dxz,dyz)))){
+    warning("Input Distance Was Undefined")
     return(NA)
   } else if(dxm > max.dxm){
-    return(Inf)
+    warning("Midpoint Distance is too large for embedding geometries")
+    return(max.curvature)
   } else if(dxm < min.dxm){
-    return(-min.curvature)
-  } else {
-
-    kappa.prev = kappa.init
-    rel.change = Inf
-    iter = 0
-    while(gEF(kappa.prev,dxy,dxz,dyz,dxm) < abs.ee.thresh|(rel.change > ee.thresh & iter < max.iter & kappa.prev < max.curvature & kappa.prev > min.curvature)){
-      kappa.next = kappa.prev - gEF(kappa.prev,dxy,dxz,dyz,dxm)/gGradKappa(kappa.prev,dxy,dxz,dyz,dxm)
-      rel.change = abs(1 - gEF(kappa.next,dxy,dxz,dyz,dxm)/(gEF(kappa.prev,dxy,dxz,dyz,dxm)))
-
-      kappa.old = kappa.prev
-      kappa.prev = kappa.next
-
-      iter = iter + 1
-    }
+    warning("Midpoint Distance is too small for embedding geometries")
+    return(min.curvature)
   }
+  g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
+
+
+  #Find the first endpoint
+  kappa.endpoint = which.max(g.vec > 0 & is.finite(g.vec))
+  kappa.max <- kap.seq[kappa.endpoint]
+  grid.size <- kap.seq[kappa.endpoint] - kap.seq[kappa.endpoint - 1]
+  kappa.max <- kappa.max + 2*grid.size
+  kappa.min <- kappa.max - 5*grid.size
+
+  kap.seq <- seq(kappa.min,min(kappa.max, max.curvature - ee.thresh), length.out = init.gridsize)
+
+  g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
+  kappa.init <- kap.seq[which.min(abs(g.vec))]
+
+  #plot(kap.seq, g.vec)
+  #plot(kap.seq, g.vec, xlim = c(-10,max.curvature), ylim = c(-10,10))
+
+
+
+  kappa.prev = kappa.init
+  rel.change = Inf
+  iter = 0
+  kappa.seq <- c(kappa.prev)
+  rel.change.seq <- c()
+
+  while((abs(gEF(kappa.prev,dxy,dxz,dyz,dxm)) > abs.ee.thresh ) & (rel.change > ee.thresh & iter < max.iter & kappa.prev < max.curvature & kappa.prev > min.curvature)){
+    kappa.next = kappa.prev - gEF(kappa.prev,dxy,dxz,dyz,dxm)/gGradKappa(kappa.prev,dxy,dxz,dyz,dxm)
+    rel.change = abs(1 - abs(gEF(kappa.next,dxy,dxz,dyz,dxm))/abs(gEF(kappa.prev,dxy,dxz,dyz,dxm)))
+    kappa.seq <- c(kappa.seq,kappa.next)
+    rel.change.seq <- c(rel.change.seq, rel.change)
+
+    kappa.old = kappa.prev
+    kappa.prev = kappa.next
+
+    iter = iter + 1
+  }
+  # cases for impossible midpoint distances
+
   kappa.est = kappa.prev
   return(kappa.est)
 }
@@ -223,9 +243,86 @@ optimal_midpoint_search <- function(D,top.k = 1, d.yz.min = 1.0,d.yz.max = 2.5){
 
 
 
+#' Triangle Inequality Filter For Distance Matrices
+#'
+#'
+#' @param D Distance matrix
+#' @param y Index of midpoint set
+#' @param z Index of midpoint set
+#' @param m Index of midpoint set
+#' @param tri.const Scaling constant for triangle inequality
+#'
+#' @return Indices which satisfy the stronger triangle inequality
+#' @export
+#'
+filter_indices <- function(D,y,z,m, tri.const = sqrt(2)){
+  K = nrow(D)
+  x.set <- 1:K
+  x.set <- x.set[-c(y,z,m)]
+
+  #indicator of whether to include an x
+  x.id <- sapply(x.set, function(x){
+    # ensuring that the distance is not infinite to each of x.y.m
+    if(is.infinite(D[x,y]) | is.infinite(D[x,z]) | is.infinite(D[x,m])){
+      return(F)
+    } else {
+      i1 = D[y,z] + D[x,z] >= tri.const*D[x,y]
+      i2 = D[y,z] + D[x,y] >= tri.const*D[x,z]
+      i3 = D[x,y] + D[x,z] >= tri.const*D[y,z]
+
+      return(ifelse(i1*i2*i3 == 1, T, F))
+    }
+
+  })
+  x.filtered <- x.set[x.id]
+  return(x.filtered)
+}
+
+
+
+#' Estimate a set of curvatures using a set of indices by x
+#'
+#' @param D Distance matrix
+#' @param y Index of midpoint set
+#' @param z Index of midpoint set
+#' @param m Index of midpoint set
+#' @param x.set Vector of indices for which we want to estimate
+#'
+#' @return Vector of kappa estimates corresponding to x.set indices
+#' @export
+#'
+EstimateKappaSet <- function(D,y,z,m,x.set){
+  d1 = nrow(D)
+  d2 = ncol(D)
+  if(d1 > d2){
+    D = t(D)
+  }
+
+  kappa.set <- rep(NA,length(x.set))
+
+  for(i in seq(length(x.set))){
+    x = x.set[i]
+    dxy = D[y,x]
+    dxz = D[z,x]
+    dyz = D[y,z]
+    dxm = D[m,x]
+    d.vec = c(dxy,dxz,dyz,dxm)
+    if(any(d.vec == Inf)){
+      kappa.hat.x <- NA
+    } else{
+      kappa.hat.x <- EstimateKappa(dxy,dxz,dyz,dxm)
+    }
+    kappa.set[i] = kappa.hat.x
+  }
+
+  return(kappa.set)
+}
+
+
+
 #' Estimate Curvature for an input Distance Matrix
 #'
-#' @param D.hat Estimated Distance Matrix
+#' @param D.hat EstimateD Distance matrix
 #' @param tri.const Triangle Constant to use for selecting good x points
 #' @param num.midpoints Number of midpoint sets to use
 #' @param d.yz.min Minimum distance of y z pairs to consider
@@ -235,13 +332,12 @@ optimal_midpoint_search <- function(D,top.k = 1, d.yz.min = 1.0,d.yz.max = 2.5){
 #' @return Return estimated values of curvature
 #' @export
 #'
-#'
 EstimateCurvature <- function(D.hat,
                               tri.const = 1.4,
                               num.midpoints = 3,
                               d.yz.min = 1.5,
                               d.yz.max = Inf,
-                              verbose = T){
+                              verbose = F){
 
 
   mid.search <- optimal_midpoint_search(D.hat,top.k = 10,
@@ -259,27 +355,25 @@ EstimateCurvature <- function(D.hat,
 
   opt.vec <- c(y.opt,z.opt,m.opt)
   if(!any(is.na(opt.vec))){
-    x.set <- filter_indices_2(D.hat,
+    x.set <- filter_indices(D.hat,
                               y.opt,
                               z.opt,
                               m.opt,
                               tri.const = tri.const)
 
-    kappa.set <- EstimateKappa_set(D.hat,
-                                    y.opt,
-                                    z.opt,
-                                    m.opt,
-                                    x.set)
+    kappa.set <- EstimateKappaSet(D.hat,
+                                  y.opt,
+                                  z.opt,
+                                  m.opt,
+                                  x.set)
 
     out.set <- list("kappas" = kappa.set,
                     "kappa.med" = median(kappa.set, na.rm = T),
-                    "D" = D.hat,
                     "midpoints" = mid.search)
 
   } else {
     out.set <- list("kappas" = NULL,
                     "kappa.med" = NULL,
-                    "D" = D.hat,
                     "midpoints" = mid.search)
   }
 
@@ -288,13 +382,57 @@ EstimateCurvature <- function(D.hat,
 
 
 
-ConstantCurvatureTest <- function(D.hat, num.points = 3, tri.const = 1.4){
+ConstantCurvatureTest <- function(D, num.points = 3, tri.const = 1.4,
+                                  d.yz.min = 1.5,
+                                  d.yz.max = Inf,
+                                  curve.scale = 10,
+                                  verbose = F){
 
-  mid.search <- optimal_midpoint_search(D.hat,top.k = num.points,
-                                        d.yz.min = min(d.yz.min, max(D.hat)/2),
+  mid.search <- optimal_midpoint_search(D,top.k = num.points,
+                                        d.yz.min = min(d.yz.min, max(D)/2),
                                         d.yz.max = d.yz.max)
 
+  location.vec <- c()
+  curvature.vec <- c()
+  rescaled.curvature.vec <- c()
+  K = num.points
+  for(k in seq(K)){
+    y.opt = mid.search[k,1]
+    z.opt = mid.search[k,2]
+    m.opt = mid.search[k,3]
+    opt.vec <- c(y.opt,z.opt,m.opt)
+    if(!any(is.na(opt.vec))){
+      x.set <- filter_indices(D,
+                              y.opt,
+                              z.opt,
+                              m.opt,
+                              tri.const = tri.const)
 
+      kappa.set <- EstimateKappaSet(D,
+                                    y.opt,
+                                    z.opt,
+                                    m.opt,
+                                    x.set)
+      location.vec <- c(location.vec, rep(k,length(kappa.set)))
+      curvature.vec <- c(curvature.vec,kappa.set)
+      y = SoftThreshold(kappa.set, curve.scale)
+      # transformation scale
+      rescaled.kappa <- (y - median(y))/mad(y) + median(y)
+      rescaled.curvature.vec <- c(rescaled.curvature.vec, rescaled.kappa)
+    }
+  }
+
+  if(length(unique(location.vec)) > 1 ){
+    test.dat <- data.frame("loc" = location.vec, "est" = curvature.vec)
+    trim.test.dat <- data.frame("loc" = location.vec, "est" = rescaled.curvature.vec)
+    norm.test <- kruskal.test(est ~ loc, data = trim.test.dat)
+    test <-  kruskal.test(est ~ loc, data = test.dat)
+    out.list <- list("p.value" =  test$p.value,"norm.p.value" =norm.test$p.value, "loc" = location.vec, "estimates" = curvature.vec, "transformed_estimates"=rescaled.curvature.vec)
+  } else {
+    out.list <- list("p.value" =  NULL, "norm.p.value" =  NULL, "loc" = NULL,  "estimates" = NULL, "transformed_estimates"= NULL)
+  }
+
+  return(out.list)
 }
 
 

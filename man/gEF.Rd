@@ -24,5 +24,5 @@ Value of estimating function. This will equal 0 when triangle can be embedded in
 Estimating Function Value
 }
 \examples{
-gEF(0,1,1,1)
+gEF(0,1,1,1,sqrt(3/4))
 }

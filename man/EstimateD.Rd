@@ -8,7 +8,7 @@ EstimateD(
   G,
   cliques,
   D0,
-  thresh = 10^(-3),
+  thresh = 10^(-6),
   max.iter = 50,
   solver = "MOSEK",
   verbose = F,
