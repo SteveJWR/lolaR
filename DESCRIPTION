@@ -1,8 +1,8 @@
 Package: lolaR
-Title: What the Package Does (One Line, Title Case)
+Title: Estimates The Local Latent Space Curvature of Latnet Distance Network Models and Tests for Constant Curvature
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+    person("Steven", "Wilkins-Reeves", , "stevewr@uw.edu", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
@@ -14,11 +14,11 @@ Imports:
     CVXR,
     ggplot2,
     igraph,
-    Matrix,
-    Rmosek
+    Matrix
 Suggests: 
     knitr,
     rmarkdown,
+    Rmosek,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: 

@@ -213,9 +213,7 @@ EstimateD <- function(G, cliques, D0,
 
   D <- CVXR::Variable(K,K, name = "Distance Matrix")
 
-  #D.big <- Variable(n.subg,n.subg, name = "Distance Matrix")
   nu.big <- outer(fixed.effect.vec,fixed.effect.vec, "+")
-  #d.vec <- Variable(K^2, name = "Distance Vector")
 
   d.vec = CVXR::vec(D) #define a vectorization of the distance matrix
   constraints <- list(
