@@ -216,7 +216,7 @@ SubSampleConstantCurvatureTest <- function(A,clique.set,reference.set,
     cat("Subsample", b, "/", B, end = "\r")
   }
   p.value <- ComputePvalue(upper.bound.sub, lower.bound.sub)
-  return(list("p.value" = p.value, "upper.bounds" = upper.bound.boot, "lower.bounds" = lower.bound.boot))
+  return(list("p.value" = p.value, "upper.bounds" = upper.bound.sub, "lower.bounds" = lower.bound.sub))
 }
 
 
