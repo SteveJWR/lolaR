@@ -200,9 +200,13 @@ midpoint_objective <- function(dym,dzm,dyz){
 #'
 #' @export
 #'
-optimal_midpoint_search <- function(D,top.k = 1, d.yz.min = 1.0,d.yz.max = 2.5){
+optimal_midpoint_search <- function(D,top.k = 1, d.yz.min = 1.0,d.yz.max = 2.5, subset){
+
   K <- nrow(D)
-  idx.set <- expand.grid(1:K,1:K,1:K)
+  if(missing(subset)){
+    subset = 1:K
+  }
+  idx.set <- expand.grid(subset,subset,subset)
   idx.set <- idx.set[idx.set[,1] < idx.set[,2] & idx.set[,2] != idx.set[,3] & idx.set[,1] != idx.set[,3],]
   n.idx <- nrow(idx.set)
   obj.val <- sapply(1:n.idx, function(i){
@@ -216,7 +220,7 @@ optimal_midpoint_search <- function(D,top.k = 1, d.yz.min = 1.0,d.yz.max = 2.5){
     dist.filter <- ifelse(dzm*dym*dyz == Inf, NaN, 1)
 
     obj.tmp = midpoint_objective(dzm,dym,dyz)*dist.filter
-    out <- abs(obj.tmp - 1/2) + abs(dym - dzm)/dyz + 10000*(dyz > d.yz.max) +  10000*(dyz < d.yz.min)
+    out <- abs(obj.tmp - 1/2) + abs(dym - dzm)/dyz + Inf*(dyz > d.yz.max) +  Inf*(dyz < d.yz.min)
     return(out)
   })
 
@@ -375,7 +379,6 @@ EstimateCurvature <- function(D,
                     "kappa.med" = NULL,
                     "midpoints" = mid.search)
   }
-
   return(out.set)
 }
 
