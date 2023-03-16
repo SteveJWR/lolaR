@@ -5,7 +5,7 @@ library(CVXR)
 library(Rmosek)
 library(MASS)
 
-setwd("/Users/Owner/Documents/PhD/Networks/local_geometry_R/local_network_geometry")
+#setwd("/Users/Owner/Documents/PhD/Networks/local_geometry_R/local_network_geometry")
 
 
 
