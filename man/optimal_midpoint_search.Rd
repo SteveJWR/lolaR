@@ -4,7 +4,7 @@
 \alias{optimal_midpoint_search}
 \title{Midpoint Search Function}
 \usage{
-optimal_midpoint_search(D, top.k = 1, d.yz.min = 1, d.yz.max = 2.5)
+optimal_midpoint_search(D, top.k = 1, d.yz.min = 1, d.yz.max = 2.5, subset)
 }
 \description{
 Midpoint Search Function

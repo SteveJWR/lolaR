@@ -14,7 +14,7 @@ EstimateCurvature(
 )
 }
 \arguments{
-\item{D}{EstimateD Distance matrix}
+\item{D}{Estimated Distance matrix}
 
 \item{tri.const}{Triangle Constant to use for selecting good x points}
 
