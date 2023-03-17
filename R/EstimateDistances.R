@@ -405,7 +405,7 @@ EstimateD <- function(G, cliques, D0,
 #' @export
 #'
 EstimateDFrob <- function(G, cliques,
-                          solver = "MOSEK",verbose = F, rand.eff.0){
+                          solver = "MOSEK",verbose = F, rand.eff.0 = F){
 
 
   if(rand.eff.0) {
