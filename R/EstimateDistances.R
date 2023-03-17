@@ -390,211 +390,140 @@ EstimateD <- function(G, cliques, D0,
   D.hat = D.next
   return(D.hat)
 }
-# EstimateD <- function(G, cliques, D0,
-#                       thresh = 10**(-3), max.iter = 50, solver = "MOSEK",
-#                       verbose = F, rand.eff.0 = F){
-#
-#   if(rand.eff.0) {
-#     fixed.effect.vec <- rep(0, length(unlist(cliques)))
-#   } else {
-#     fixed.effect.vec <- unlist(estimateRandeff(G, cliques))
-#   }
-#
-#
-#
-#
-#   # numerical smoothing for some gradient terms.
-#   eps = 10**(-8) # precision for terms
-#
-#   if(solver %in% c("MOSEK","GUROBI")){
-#     if(! solver %in% installed_solvers()){
-#       cvx_solver = "OSQP"
-#     } else {
-#       cvx_solver = solver
-#     }
-#   } else {
-#     cvx_solver = solver
-#   }
-#
-#   K = max(cliques)
-#   if(missing(D0)){
-#     D0 <- InitD0(G, cliques, fixed.effect.vec) # provide an initial value
-#   }
-#
-#
-#   D <- Variable(K,K, name = "Distance Matrix")
-#
-#   #D.big <- Variable(n.subg,n.subg, name = "Distance Matrix")
-#   nu.big <- outer(fixed.effect.vec,fixed.effect.vec, "+")
-#   #d.vec <- Variable(K^2, name = "Distance Vector")
-#
-#   d.vec = vec(D) #define a vectorization of the distance matrix
-#   constraints <- list(
-#     diag(D) == 0,
-#     D == t(D),
-#     D >= 0
-#   )
-#
-#   # the triangle inequalities
-#
-#   index.block <- expand.grid(seq(K),seq(K),seq(K))
-#   ib.1 <- index.block[,1] < index.block[,2]
-#   ib.2 <- index.block[,2] < index.block[,3]
-#   index.block <- index.block[ib.1 & ib.2, ]
-#
-#
-#   ref.block <- index.block
-#   ref.block[,1] <- (index.block[,1] - 1)*K + index.block[,2]
-#   ref.block[,2] <- (index.block[,2] - 1)*K + index.block[,3]
-#   ref.block[,3] <- (index.block[,1] - 1)*K + index.block[,3]
-#
-#   E.block.1 <- matrix(0,nrow(index.block),K^2)
-#   E.block.1 <- as(E.block.1, "sparseMatrix")
-#   n.ref <- nrow(ref.block)
-#   E.block.1 <- sparseMatrix(i = c(seq(n.ref),seq(n.ref),seq(n.ref)),
-#                             j = c(ref.block[,1],ref.block[,2],ref.block[,3]),
-#                             x = c(rep(1,n.ref),rep(1,n.ref),rep(-1,n.ref)),
-#                             dims = c(n.ref,K^2))
-#   E.block.2 <- sparseMatrix(i = c(seq(n.ref),seq(n.ref),seq(n.ref)),
-#                             j = c(ref.block[,1],ref.block[,2],ref.block[,3]),
-#                             x = c(rep(1,n.ref),rep(-1,n.ref),rep(1,n.ref)),
-#                             dims = c(n.ref,K^2))
-#   E.block.3 <- sparseMatrix(i = c(seq(n.ref),seq(n.ref),seq(n.ref)),
-#                             j = c(ref.block[,1],ref.block[,2],ref.block[,3]),
-#                             x = c(rep(-1,n.ref),rep(1,n.ref),rep(1,n.ref)),
-#                             dims = c(n.ref,K^2))
-#
-#   E.mat <- rbind(E.block.1,
-#                  E.block.2,
-#                  E.block.3)
-#
-#   rm(E.block.1)
-#   rm(E.block.2)
-#   rm(E.block.3)
-#
-#   # turn the many restrictions into a single one.
-#   constraints <- append(constraints, E.mat %*% d.vec >= 0)
-#
-#
-#
-#   ######
-#   # for fast computation of M and B matrices
-#   clique.sizes = table(cliques)
-#   l.max = max(clique.sizes)
-#   Id.tens = array(0,c(K,K,l.max**2))
-#   G.tens = array(0,c(K,K,l.max**2)) #tensor version of the clique adjacency
-#   nu.tens = array(0,c(K,K,l.max**2))
-#
-#   # each pair has a length
-#   for(k1 in seq(K)){
-#     for(k2 in seq(K)){
-#       if(k1 != k2){
-#         n.potential.connections = clique.sizes[k1]*clique.sizes[k2]
-#         idx1 = which(cliques == k1)
-#         idx2 = which(cliques == k2)
-#         nu.block <- nu.big[idx1,idx2]
-#
-#         Id.tens[k1,k2,1:n.potential.connections] = 1
-#         nu.tens[k1,k2,1:n.potential.connections] = as.vector(nu.block)
-#         G.tens[k1,k2,1:n.potential.connections] = as.vector(G[idx1,idx2])
-#         #D.prev.tens[k1,k2,] = D.prev[k1,k2]
-#       }
-#     }
-#   }
-#
-#   ######
-#   # successive second order approximation
-#   # allows for a fast implementation of QP solutions
-#   D.prev <- D0
-#   D.prev.prev <- D0
-#   diff = Inf
-#   iter = 1
-#   lik.prev = -Inf
-#   while(diff > thresh & iter < max.iter){
-#     time.1 <- Sys.time()
-#     D.prev.tens = array(0,c(K,K,l.max**2))
-#     for(k1 in seq(K)){
-#       for(k2 in seq(K)){
-#         if(k1 != k2){
-#           D.prev.tens[k1,k2,] = D.prev[k1,k2]
-#         }
-#       }
-#     }
-#
-#     M.tens <- ((1 - G.tens)*(-1/2)*(exp(nu.tens - D.prev.tens - eps))/((1 - exp(nu.tens - D.prev.tens - eps))**2))*Id.tens
-#
-#     B.tens <- (-G.tens + (1 - G.tens)*(exp(nu.tens - D.prev.tens - eps))/(1 - exp(nu.tens - D.prev.tens - eps)) - 2*M.tens*D.prev.tens)*Id.tens
-#
-#
-#     M = rowSums(M.tens, dims = 2)
-#     B = rowSums(B.tens, dims = 2)
-#
-#     diag(M) = 0
-#     diag(B) = 0
-#
-#     time.2 <- Sys.time()
-#     # print(time.2 - time.1)
-#
-#
-#     b = as.vector(B)
-#     w = sqrt(as.vector(-M))
-#     obj.arg = -sum_squares(w*d.vec) + sum(b * d.vec)
-#
-#     obj <- Maximize(obj.arg)
-#     prob <- Problem(obj, constraints)
-#
-#     time.1 <- Sys.time()
-#     # can get weirdly stuck in numerical error
-#
-#     result <- tryCatch({
-#       solve(prob, solver = cvx_solver)
-#     }, error = function(e) {
-#
-#       return(NULL)})
-#
-#     time.2 <- Sys.time()
-#     #print(time.2 - time.1)
-#     # unstuck the problem sometimes
-#
-#     if(!is.null(result)){
-#       if(result$status == "solver_error"){
-#         D.next <- D.prev + (0.2)*(D.prev - D.prev.prev)
-#         lik.prev = -Inf
-#       } else {
-#         D.next <- result$getValue(D)
-#       }
-#
-#     } else {
-#       D.next <- D.prev + (0.2)*(D.prev - D.prev.prev)
-#       lik.prev <- -Inf
-#     }
-#
-#     D.next[D.next < eps] = 0
-#     # large fraction at zero, we should reset
-#     if(mean(D.next == 0) > 0.5){
-#       D.next <- D.prev + (0.2)*(D.prev - D.prev.prev)
-#       lik.prev <- -Inf
-#     }
-#
-#     D.next[D.next < eps] = 0
-#     lik.next = likelihood_value(G, cliques, fixed.effect.vec, D.next)
-#     diff = lik.next - lik.prev
-#     if(is.nan(diff) | lik.prev == -Inf){
-#       diff = Inf
-#     }
-#     lik.prev = lik.next
-#     D.prev.prev = D.prev
-#     D.prev = D.next
-#
-#     if(verbose){
-#       cat(paste("Num Steps:", iter, "Diff Likelihood:", round(diff,4)), end = "\r")
-#     }
-#     iter = iter + 1
-#   }
-#
-#   D.hat = D.next
-#
-#   return(D.hat)
-# }
 
+
+#' Estimate Distance Matrix From Cliques (Frobenius Norm)
+#'
+#' @param G Full Data Adjacency Matrix
+#' @param cliques List of indices corresponding to cliques
+#' @param fixed.effect.vec List of estimated fixed Effects
+#' @param solver Which solver should be passed to CVX
+#' @param verbose Include additional messages
+#'
+#' @return Estimated Distance Matrix
+#' @export
+#'
+EstimateDFrob <- function(G, cliques, solver = "MOSEK",
+                          verbose = F, rand.eff.0 = F){
+
+
+  if(rand.eff.0) {
+    fixed.effect.vec <- rep(0, length(unlist(cliques)))
+  } else {
+    fixed.effect.vec <- unlist(estimateRandeff(G, cliques))
+  }
+
+
+  if(solver %in% c("MOSEK","GUROBI")){
+    if(! solver %in% CVXR::installed_solvers()){
+      cvx_solver = "OSQP"
+    } else {
+      cvx_solver = solver
+    }
+  } else {
+    cvx_solver = solver
+  }
+
+  K = length(cliques)
+
+  D <- CVXR::Variable(K,K, name = "Distance Matrix")
+
+  d.vec = CVXR::vec(D) #define a vectorization of the distance matrix
+  constraints <- list(
+    CVXR::diag(D) == 0,
+    D == t(D),
+    D >= 0
+  )
+
+  # the triangle inequalities
+
+  index.block <- expand.grid(seq(K),seq(K),seq(K))
+  ib.1 <- index.block[,1] < index.block[,2]
+  ib.2 <- index.block[,2] < index.block[,3]
+  index.block <- index.block[ib.1 & ib.2, ]
+
+
+  ref.block <- index.block
+  ref.block[,1] <- (index.block[,1] - 1)*K + index.block[,2]
+  ref.block[,2] <- (index.block[,2] - 1)*K + index.block[,3]
+  ref.block[,3] <- (index.block[,1] - 1)*K + index.block[,3]
+
+  E.block.1 <- matrix(0,nrow(index.block),K^2)
+  E.block.1 <- as(E.block.1, "sparseMatrix")
+  n.ref <- nrow(ref.block)
+
+  E.block.1 <- Matrix::sparseMatrix(i = c(seq(n.ref),seq(n.ref),seq(n.ref)),
+                                    j = c(ref.block[,1],ref.block[,2],ref.block[,3]),
+                                    x = c(rep(1,n.ref),rep(1,n.ref),rep(-1,n.ref)),
+                                    dims = c(n.ref,K^2))
+  E.block.2 <- Matrix::sparseMatrix(i = c(seq(n.ref),seq(n.ref),seq(n.ref)),
+                                    j = c(ref.block[,1],ref.block[,2],ref.block[,3]),
+                                    x = c(rep(1,n.ref),rep(-1,n.ref),rep(1,n.ref)),
+                                    dims = c(n.ref,K^2))
+  E.block.3 <- Matrix::sparseMatrix(i = c(seq(n.ref),seq(n.ref),seq(n.ref)),
+                                    j = c(ref.block[,1],ref.block[,2],ref.block[,3]),
+                                    x = c(rep(-1,n.ref),rep(1,n.ref),rep(1,n.ref)),
+                                    dims = c(n.ref,K^2))
+
+  E.mat <- rbind(E.block.1,
+                 E.block.2,
+                 E.block.3)
+
+  # These are the biggest memory objects, so we don't want to duplicate them
+  rm(E.block.1)
+  rm(E.block.2)
+  rm(E.block.3)
+
+  # turn the many restrictions into a single one.
+  constraints <- append(constraints, E.mat %*% d.vec >= 0)
+
+  cliques.subset = CliquesCount(cliques)
+  cliques.subset.idx = cliques.subset$idx
+
+  G.subset <- G[cliques.subset.idx, cliques.subset.idx]
+  ######
+  # for fast computation of M and B matrices
+  clique.sizes = table(cliques.subset$labels)
+  l.max = max(clique.sizes)
+  Id.tens = array(0,c(K,K,l.max**2))
+  G.tens = array(0,c(K,K,l.max**2)) #tensor version of the clique adjacency
+  nu.tens = array(0,c(K,K,l.max**2))
+
+  P.mat = matrix(0,K,K)
+  Gamma.mat = matrix(0,K,K)
+  # each pair has a length
+  for(k1 in seq(K)){
+    for(k2 in seq(K)){
+      if(k1 != k2){
+        n.potential.connections = clique.sizes[k1]*clique.sizes[k2]
+        idx1 = which(cliques.subset$labels == k1)
+        idx2 = which(cliques.subset$labels == k2)
+        Gamma.mat[k1,k2] = log(mean(exp(nu.tens[idx1]))) + log(mean(exp(nu.tens[idx2])))
+        P.mat[k1,k2] = mean(G[idx1, idx2])
+      }
+    }
+  }
+
+
+  P.mat[P.mat == 0] = 1/ min(clique.sizes)^2
+
+  obj.arg = CVXR::norm(D +log(P.mat) - Gamma.mat, type = "F")
+
+  obj <- CVXR::Minimize(obj.arg)
+  prob <- CVXR::Problem(obj, constraints)
+
+  time.1 <- Sys.time()
+  # can get weirdly stuck in numerical error
+
+  result <- tryCatch({
+    CVXR::solve(prob, solver = cvx_solver)
+  }, error = function(e) {
+
+    return(NULL)})
+
+  time.2 <- Sys.time()
+  print(time.2 - time.1)
+
+  return(D.hat)
+}
 
