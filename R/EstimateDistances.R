@@ -392,6 +392,7 @@ EstimateD <- function(G, cliques, D0,
 }
 
 
+
 #' Estimate Distance Matrix From Cliques (Frobenius Norm)
 #'
 #' @param G Full Data Adjacency Matrix
@@ -403,8 +404,8 @@ EstimateD <- function(G, cliques, D0,
 #' @return Estimated Distance Matrix
 #' @export
 #'
-EstimateDFrob <- function(G, cliques, solver = "MOSEK",
-                          verbose = F, rand.eff.0 = F){
+EstimateDFrob <- function(G, cliques, fixed.effect.vec,
+                          solver = "MOSEK",verbose = F){
 
 
   if(rand.eff.0) {
