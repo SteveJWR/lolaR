@@ -171,12 +171,12 @@ likelihood_value <- function(G, cliques, fixed.effect.vec, D0){
 #'
 #' @param G Full Data Adjacency Matrix
 #' @param cliques List of indices corresponding to cliques
-#' @param fixed.effect.vec List of estimated fixed Effects
 #' @param D0 Initial Point To Take Taylor Series of Objective
 #' @param thresh Default Threshold for Increasing Likelihood
 #' @param max.iter Maximum number of iterations of the second order approximation
 #' @param solver Which solver should be passed to CVX
 #' @param verbose Include additional messages
+#' @param rand.eff.0 Set Random Effects to 0
 #'
 #' @return Estimated Distance Matrix
 #' @export
@@ -397,15 +397,15 @@ EstimateD <- function(G, cliques, D0,
 #'
 #' @param G Full Data Adjacency Matrix
 #' @param cliques List of indices corresponding to cliques
-#' @param fixed.effect.vec List of estimated fixed Effects
 #' @param solver Which solver should be passed to CVX
 #' @param verbose Include additional messages
+#' @param rand.eff.0 Set Random Effects to 0
 #'
 #' @return Estimated Distance Matrix
 #' @export
 #'
-EstimateDFrob <- function(G, cliques, fixed.effect.vec,
-                          solver = "MOSEK",verbose = F){
+EstimateDFrob <- function(G, cliques,
+                          solver = "MOSEK",verbose = F, rand.eff.0){
 
 
   if(rand.eff.0) {
