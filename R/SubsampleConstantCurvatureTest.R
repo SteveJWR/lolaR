@@ -4,18 +4,18 @@
 #' Estimating function for the upper bound on curvature
 #'
 #'
-#' @param kappa
-#' @param dxy
-#' @param dxz
-#' @param dyz
-#' @param dxm
-#' @param dym
-#' @param dzm
+#' @param kappa curvature
+#' @param dxy distance between points x and y
+#' @param dxz distance between points x and z
+#' @param dyz distance between points y and z
+#' @param dxm distance between points x and m
+#' @param dym distance between points y and m
+#' @param dzm distance between points z and m
 #'
-#' @return
+#' @return curvature estimating function bound
 #' @export
 #'
-#' @examples
+# @examples
 g_u <- function(kappa, dxy, dxz, dyz, dxm, dym, dzm){
   out <- gEF(kappa,dxy,dxz,dyz,dxm + MidDist(kappa,dym,dzm,dyz))
 }
@@ -23,18 +23,18 @@ g_u <- function(kappa, dxy, dxz, dyz, dxm, dym, dzm){
 # TODO: hide these functions from user interface
 #' Estimating function for the lower bound on curvature
 #'
-#' @param kappa
-#' @param dxy
-#' @param dxz
-#' @param dyz
-#' @param dxm
-#' @param dym
-#' @param dzm
+#' @param kappa curvature
+#' @param dxy distance between points x and y
+#' @param dxz distance between points x and z
+#' @param dyz distance between points y and z
+#' @param dxm distance between points x and m
+#' @param dym distance between points y and m
+#' @param dzm distance between points z and m
 #'
-#' @return
+#' @return  curvature estimating function bound
 #' @export
 #'
-#' @examples
+# @examples
 g_l <- function(kappa, dxy, dxz, dyz, dxm, dym, dzm){
   out <- gEF(kappa,dxy,dxz,dyz,dxm - MidDist(kappa,dym,dzm,dyz))
 }
@@ -43,19 +43,19 @@ g_l <- function(kappa, dxy, dxz, dyz, dxm, dym, dzm){
 
 #' Estimator of upper bound on the curvature
 #'
-#' @param dxy
-#' @param dxz
-#' @param dyz
-#' @param dxm
-#' @param dym
-#' @param dzm
-#' @param kappa.prec
-#' @param min.curvature
+#' @param dxy distance between points x and y
+#' @param dxz distance between points x and z
+#' @param dyz distance between points y and z
+#' @param dxm distance between points x and m
+#' @param dym distance between points y and m
+#' @param dzm distance between points z and m
+#' @param kappa.prec granularity of kappa grid
+#' @param min.curvature minimum curvature value searched
 #'
-#' @return
+#' @return  Upper Bound Estimate
 #' @export
 #'
-#' @examples
+# @examples
 kappa_u <- function(dxy, dxz, dyz, dxm, dym, dzm,
                     kappa.prec = 10**(-5),
                     min.curvature = -1000){
@@ -120,19 +120,19 @@ kappa_u <- function(dxy, dxz, dyz, dxm, dym, dzm,
 
 #' Estimator of lower bound on the curvature
 #'
-#' @param dxy
-#' @param dxz
-#' @param dyz
-#' @param dxm
-#' @param dym
-#' @param dzm
-#' @param kappa.prec
-#' @param min.curvature
+#' @param dxy distance between points x and y
+#' @param dxz distance between points x and z
+#' @param dyz distance between points y and z
+#' @param dxm distance between points x and m
+#' @param dym distance between points y and m
+#' @param dzm distance between points z and m
+#' @param kappa.prec granularity of kappa grid
+#' @param min.curvature minimum curvature value searched
 #'
-#' @return
+#' @return Lower bound estimate
 #' @export
 #'
-#' @examples
+# @examples
 kappa_l <- function(dxy, dxz, dyz, dxm, dym, dzm,
                     kappa.prec = 10**(-5),
                     min.curvature = -1000){
@@ -193,7 +193,7 @@ kappa_l <- function(dxy, dxz, dyz, dxm, dym, dzm,
   }
 }
 
-#D = D.hat.sub # , y,z,m,x.set
+
 #' estimate curvature bounds using a reference set x
 #'
 #' @param D Distance Matrix
@@ -202,10 +202,10 @@ kappa_l <- function(dxy, dxz, dyz, dxm, dym, dzm,
 #' @param m surrogate midpoint of y and z
 #' @param x.set set of reference x coordinates
 #'
-#' @return
+#' @return Upper And Lower Bounds for estimate
 #' @export
 #'
-#' @examples
+# @examples
 estimateBounds <- function(D,y,z,m,x.set){
   kappa.us <- c()
   kappa.ls <- c()
@@ -239,17 +239,17 @@ estimateBounds <- function(D,y,z,m,x.set){
 # Can Change the default settings for the midpoint search.
 #' Selection of good midpoints and reference points. Simple default values are included for ease of use
 #'
-#' @param D
-#' @param J
-#' @param tri.const
-#' @param d.yz.min
-#' @param d.yz.max
-#' @param sub.idx
+#' @param D Distance Matrix
+#' @param J Number of midpoints
+#' @param tri.const filter triangle constant
+#' @param d.yz.min minimum distance for yz
+#' @param d.yz.max maximum distance for yz
+#' @param sub.idx subset of indices searched
 #'
-#' @return
+#' @return Reference points
 #' @export
 #'
-#' @examples
+# @examples
 selectReference <- function(D,J,tri.const = 1.4, d.yz.min = 1, d.yz.max = 5, sub.idx){
   K = nrow(D)
   if(missing(sub.idx)){
@@ -291,10 +291,10 @@ selectReference <- function(D,J,tri.const = 1.4, d.yz.min = 1, d.yz.max = 5, sub
 #' @param store.D.samples stores subsamples of the matrix D for later use
 #' @param max.iter number of iterations performed for each maximum likelihood step.  Setting this to 1 uses the one-step estimator
 #'
-#' @return
+#' @return Test of constant curvature based on subsampling
 #' @export
 #'
-#' @examples
+# @examples
 SubSampleConstantCurvatureTest <- function(A,clique.set,reference.set,
                                            subsample.rate = 1,B = 100, store.D.samples = T,
                                            max.iter = 1){
@@ -343,20 +343,21 @@ SubSampleConstantCurvatureTest <- function(A,clique.set,reference.set,
 # Recompute the test values using cached distance matrix set.
 # This is a function purely for the simulations in the paper.
 # This can be only used when A and clique.set were the same that generated the constant curvature test.
+# TODO: We probably don't need this in the simulation in the end.
 #
 #' Compute the Constant Curvature Test using Multiple Thresholds. Used in replicating the simulations.
 #'
-#' @param A
-#' @param clique.set
-#' @param D.subsample
-#' @param tri.const.seq
-#' @param J
-#' @param verbose
+#' @param A Adjacency matrix
+#' @param clique.set indices of where the cliques are located in A
+#' @param D.subsample list of subsampled Distance Matrices
+#' @param tri.const.seq sequence of filtered x.values
+#' @param J number of midpoints
+#' @param verbose print details
 #'
-#' @return
+#' @return Test of constant curvature using multiple thresholds
 #' @export
 #'
-#' @examples
+# @examples
 SubSampleConstantCurvatureTestMultipleThresholds <- function(A, clique.set,
                                                              D.subsample, tri.const.seq,
                                                              J = 3, verbose = F){
@@ -404,10 +405,10 @@ SubSampleConstantCurvatureTestMultipleThresholds <- function(A, clique.set,
 #' @param upper.bounds upper bound subsample set
 #' @param lower.bounds lower bound subsample set
 #'
-#' @return
+#' @return p-value from subsampled upper and lower bounds.
 #' @export
 #'
-#' @examples
+# @examples
 ComputePvalue <- function(upper.bounds, lower.bounds){
   B = length(upper.bounds)
   sort.u <- sort(upper.bounds, decreasing = F)
@@ -423,4 +424,7 @@ ComputePvalue <- function(upper.bounds, lower.bounds){
   p.value = min(c(1,2*(1 - b/B)))
   return(p.value)
 }
+
+
+
 

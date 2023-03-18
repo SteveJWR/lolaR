@@ -98,7 +98,6 @@ ClusterCliqueSearch <- function(G, min_clique_size = 8, res = 1, verbose = F){
 #' @return A list of non-overlapping cliques
 #' @export
 #'
-#'
 CliqueSearch <- function(G, min_clique_size = 8, verbose = F){
   g <- igraph::graph_from_adjacency_matrix(G, mode= "undirected")
   clique.set = igraph::max_cliques(g,min = min_clique_size)

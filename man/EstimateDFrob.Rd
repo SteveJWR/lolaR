@@ -15,7 +15,7 @@ EstimateDFrob(G, cliques, solver = "MOSEK", verbose = F, rand.eff.0 = F)
 
 \item{verbose}{Include additional messages}
 
-\item{fixed.effect.vec}{List of estimated fixed Effects}
+\item{rand.eff.0}{Set Random Effects to 0}
 }
 \value{
 Estimated Distance Matrix
