@@ -93,7 +93,6 @@ ClusterCliqueSearch <- function(G, min_clique_size = 8, res = 1, verbose = F){
 #'
 #' @param G Adjacency Matrix
 #' @param min_clique_size Minimum clique size
-#' @param res Tuning parameter for clustering
 #' @param verbose Whether to include additional messages
 #'
 #' @return A list of non-overlapping cliques
