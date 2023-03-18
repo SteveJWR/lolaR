@@ -7,7 +7,7 @@ use_r("BasicMath")
 use_r("FindCliques")
 use_r("EstimateDistances")
 use_r("EstimateCurvature")
-
+use_r("SubsampleConstantCurvatureTest.Rurvature")
 
 #list of required packages
 # igraph, CVXR, ggplot2, Matrix

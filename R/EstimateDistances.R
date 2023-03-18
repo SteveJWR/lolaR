@@ -223,7 +223,7 @@ EstimateD <- function(G, cliques, D0,
   )
 
   # the triangle inequalities
-
+  time.1 <- Sys.time()
   index.block <- expand.grid(seq(K),seq(K),seq(K))
   ib.1 <- index.block[,1] < index.block[,2]
   ib.2 <- index.block[,2] < index.block[,3]
@@ -259,7 +259,8 @@ EstimateD <- function(G, cliques, D0,
   rm(E.block.1)
   rm(E.block.2)
   rm(E.block.3)
-
+  time.2 <- Sys.time()
+  #print(time.2 - time.1)
   # turn the many restrictions into a single one.
   constraints <- append(constraints, E.mat %*% d.vec >= 0)
 
@@ -300,7 +301,7 @@ EstimateD <- function(G, cliques, D0,
   D.prev.prev <- D0
   diff = Inf
   lik.rat = 1
-  iter = 1
+  iter = 0
   lik.prev = -Inf
   while(lik.rat > thresh & iter < max.iter){
     time.1 <- Sys.time()
@@ -325,7 +326,7 @@ EstimateD <- function(G, cliques, D0,
     diag(B) = 0
 
     time.2 <- Sys.time()
-    # print(time.2 - time.1)
+    print(time.2 - time.1)
 
 
     b = as.vector(B)
@@ -361,8 +362,9 @@ EstimateD <- function(G, cliques, D0,
       lik.prev <- -Inf
     }
 
+    # numerical errors when near but not exactly zero
     D.next[D.next < eps] = 0
-    # large fraction at zero, we should reset
+
     if(mean(D.next == 0) > 0.5){
       D.next <- D.prev + (0.2)*(D.prev - D.prev.prev)
       lik.prev <- -Inf
@@ -387,6 +389,7 @@ EstimateD <- function(G, cliques, D0,
     }
     iter = iter + 1
   }
+
   D.hat = D.next
   return(D.hat)
 }
@@ -500,7 +503,7 @@ EstimateDFrob <- function(G, cliques,
         idx1 = which(cliques.subset$labels == k1)
         idx2 = which(cliques.subset$labels == k2)
         Gamma.mat[k1,k2] = log(mean(exp(nu.tens[idx1]))) + log(mean(exp(nu.tens[idx2])))
-        P.mat[k1,k2] = mean(G[idx1, idx2])
+        P.mat[k1,k2] = mean(G.subset[idx1, idx2])
       }
     }
   }
@@ -524,7 +527,7 @@ EstimateDFrob <- function(G, cliques,
 
   time.2 <- Sys.time()
   print(time.2 - time.1)
-
+  D.hat = result$getValue(D)
   return(D.hat)
 }
 

@@ -89,5 +89,27 @@ ClusterCliqueSearch <- function(G, min_clique_size = 8, res = 1, verbose = F){
 }
 
 
+#' Exhaustive Search For Cliques
+#'
+#' @param G Adjacency Matrix
+#' @param min_clique_size Minimum clique size
+#' @param res Tuning parameter for clustering
+#' @param verbose Whether to include additional messages
+#'
+#' @return A list of non-overlapping cliques
+#' @export
+#'
+#'
+CliqueSearch <- function(G, min_clique_size = 8, verbose = F){
+  g <- igraph::graph_from_adjacency_matrix(G, mode= "undirected")
+  clique.set = igraph::max_cliques(g,min = min_clique_size)
+  clique.set = CliquePartition(clique.set)
+  if(verbose){
+    print(paste("Number of Cliques of size,",min_clique_size,":", length(clique.set)))
+  }
+  return(clique.set)
+}
+
+
 
 
