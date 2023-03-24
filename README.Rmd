@@ -83,25 +83,14 @@ plot(g.sub.astro, vertex.size=4)
 plot(g.sub.cm, vertex.size=4)
 ```
 
-We first find a list of cliques of size $19$ and $12$ respectively.  This is in order to have a moderately large ($40-60$) number of rows/columns in our distance matrix.
+We first find a list of cliques of size $ 19 $ and $ 12 $ respectively.  This is in order to have a moderately large ($ 40-60 $) number of rows/columns in our distance matrix.
 
-We can either conduct an approximate search for cliques at least of size ($\ell = \{19,12\}$ respectively)
-```{r Find Cliques}
-cliques.sample.astro = ClusterCliqueSearch(G.astro, min_clique_size = 19)
-cliques.sample.cm = ClusterCliqueSearch(G.cm, min_clique_size = 12)
-```
 
-But since these networks are relatively sparse, we can compute the exact set of maximal cliques and partition them into non-overlapping sets.
+Since these networks are relatively sparse, we can compute the exact set of maximal cliques and partition them into non-overlapping sets. See the package for an approximate method of finding cliques. 
 ```{r Find Cliques Full}
-g.astro <- igraph::graph_from_adjacency_matrix(G.astro, mode = "undirected")
-g.cm <- igraph::graph_from_adjacency_matrix(G.cm, mode = "undirected")
 
-
-cliques.astro = igraph::maximal.cliques(g.astro, min = 19)
-cliques.cm = igraph::maximal.cliques(g.cm, min = 12)
-
-cliques.astro <- CliquePartition(cliques.astro)
-cliques.cm <- CliquePartition(cliques.cm)
+cliques.astro = CliqueSearch(G.astro, min_clique_size = 19)
+cliques.cm = CliqueSearch(G.cm, min_clique_size = 12)
 ```
 
 

@@ -326,7 +326,7 @@ EstimateD <- function(G, cliques, D0,
     diag(B) = 0
 
     time.2 <- Sys.time()
-    print(time.2 - time.1)
+    #print(time.2 - time.1)
 
 
     b = as.vector(B)
@@ -526,7 +526,7 @@ EstimateDFrob <- function(G, cliques,
     return(NULL)})
 
   time.2 <- Sys.time()
-  print(time.2 - time.1)
+  #print(time.2 - time.1)
   D.hat = result$getValue(D)
   return(D.hat)
 }

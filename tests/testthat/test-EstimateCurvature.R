@@ -4,7 +4,7 @@ test_that("Verify Vectorized Midpoint Computation", {
 })
 
 test_that("Verify Curvature Estimation Works", {
-  expect_equal(EstimateKappa(1,1,1,sqrt(3/4)), 0)
+  expect_equal(EstimateKappa(1,1,1,sqrt(3/4)), 0, tolerance = 10**(-6))
 })
 
 

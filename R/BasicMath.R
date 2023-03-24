@@ -1,4 +1,6 @@
 
+## TODO: Do not need examples of everything here
+
 #' Secant Function
 #'
 #' @param x Input value to take secant

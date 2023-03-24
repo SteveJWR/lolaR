@@ -89,31 +89,18 @@ plot(g.sub.cm, vertex.size=4)
 
 <img src="man/figures/README-Example Plot 2-1.png" width="100%" />
 
-We first find a list of cliques of size $19$ and $12$ respectively. This
-is in order to have a moderately large ($40-60$) number of rows/columns
-in our distance matrix.
+We first find a list of cliques of size \$ 19 \$ and \$ 12 \$
+respectively. This is in order to have a moderately large (\$ 40-60 \$)
+number of rows/columns in our distance matrix.
 
-We can either conduct an approximate search for cliques at least of size
-($\ell = \{19,12\}$ respectively)
-
-``` r
-cliques.sample.astro = ClusterCliqueSearch(G.astro, min_clique_size = 19)
-cliques.sample.cm = ClusterCliqueSearch(G.cm, min_clique_size = 12)
-```
-
-But since these networks are relatively sparse, we can compute the exact
-set of maximal cliques and partition them into non-overlapping sets.
+Since these networks are relatively sparse, we can compute the exact set
+of maximal cliques and partition them into non-overlapping sets. See the
+package for an approximate method of finding cliques.
 
 ``` r
-g.astro <- igraph::graph_from_adjacency_matrix(G.astro, mode = "undirected")
-g.cm <- igraph::graph_from_adjacency_matrix(G.cm, mode = "undirected")
 
-
-cliques.astro = igraph::maximal.cliques(g.astro, min = 19)
-cliques.cm = igraph::maximal.cliques(g.cm, min = 12)
-
-cliques.astro <- CliquePartition(cliques.astro)
-cliques.cm <- CliquePartition(cliques.cm)
+cliques.astro = CliqueSearch(G.astro, min_clique_size = 19)
+cliques.cm = CliqueSearch(G.cm, min_clique_size = 12)
 ```
 
 Next using the set of cliques, we can estimate a distance matrix under
@@ -122,9 +109,9 @@ the latent distance model without first choosing an embedding space.
 ``` r
 
 D.astro <- EstimateD(G.astro, cliques.astro, verbose = T)
-#> Num Steps: 1 Likelihood Stopping Criteria: 1 Num Steps: 2 Likelihood Stopping Criteria: 0.0125474 Num Steps: 3 Likelihood Stopping Criteria: 0.0024412 Num Steps: 4 Likelihood Stopping Criteria: 0.0002361 Num Steps: 5 Likelihood Stopping Criteria: 3.9e-05 Num Steps: 6 Likelihood Stopping Criteria: 4.63e-05 Num Steps: 7 Likelihood Stopping Criteria: 2.32e-05 Num Steps: 8 Likelihood Stopping Criteria: 1.1e-06 Num Steps: 9 Likelihood Stopping Criteria: 0 
+#> Num Steps: 0 Likelihood Stopping Criteria: 1 Num Steps: 1 Likelihood Stopping Criteria: 0.0125474 Num Steps: 2 Likelihood Stopping Criteria: 0.0024412 Num Steps: 3 Likelihood Stopping Criteria: 0.0002361 Num Steps: 4 Likelihood Stopping Criteria: 3.9e-05 Num Steps: 5 Likelihood Stopping Criteria: 4.63e-05 Num Steps: 6 Likelihood Stopping Criteria: 2.32e-05 Num Steps: 7 Likelihood Stopping Criteria: 1.1e-06 Num Steps: 8 Likelihood Stopping Criteria: 0 
 D.cliques <- EstimateD(G.cm, cliques.cm, verbose = T)
-#> Num Steps: 1 Likelihood Stopping Criteria: 1 Num Steps: 2 Likelihood Stopping Criteria: 0.0002213 Num Steps: 3 Likelihood Stopping Criteria: 3.2e-06 Num Steps: 4 Likelihood Stopping Criteria: 0 
+#> Num Steps: 0 Likelihood Stopping Criteria: 1 Num Steps: 1 Likelihood Stopping Criteria: 0.0002213 Num Steps: 2 Likelihood Stopping Criteria: 3.2e-06 Num Steps: 3 Likelihood Stopping Criteria: 0 
 ```
 
 We first can search for the best midpoint and estimate the latent
@@ -133,16 +120,16 @@ curvature for each model.
 ``` r
 kappa.astro <- EstimateCurvature(D.astro, verbose = T, d.yz.min = 1, d.yz.max = 4.5)
 #> [1] "Midpoints: "
-#>       y  z  m      dym      dzm      dyz
-#> [1,] 25 38 35 2.038540 2.038771 4.077311
-#> [2,] 21 55 39 1.716070 1.718500 3.434570
-#> [3,]  6 16 29 1.560494 1.580823 3.141317
+#>      y z m      dym      dzm      dyz
+#> [1,] 2 3 1 7.176377 8.198623 4.331071
+#> [2,] 5 6 4 7.282860 3.714406 8.441608
+#> [3,] 8 9 7 6.813139 5.169662 6.178127
 kappa.cm <- EstimateCurvature(D.cm, verbose = T, d.yz.min = 1, d.yz.max = 4.5)
 #> [1] "Midpoints: "
-#>       y  z  m      dym      dzm      dyz
-#> [1,] 22 33 36 2.041491 2.056636 4.098127
-#> [2,] 24 30 20 2.182764 2.160485 4.343248
-#> [3,]  8 27 34 1.778742 1.725676 3.504418
+#>      y z m       dym       dzm      dyz
+#> [1,] 2 3 1  9.311635  7.071450 5.901554
+#> [2,] 5 6 4  6.649070  8.279867 9.012998
+#> [3,] 8 9 7 13.867194 17.240381 5.619337
 ```
 
 From these distance matrices we are able to search for indices which

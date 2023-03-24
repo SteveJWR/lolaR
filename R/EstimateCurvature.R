@@ -100,16 +100,18 @@ gGradKappa <- function(kappa,dxy,dxz,dyz,dxm){
 #' @param max.iter Maximum number of iterations
 #' @param ee.thresh Threshold for the ratio of the solution of the estimating function
 #' @param abs.ee.thresh Threshold for the absolute value of the solution of the estimating function
+#' @param kappa.thresh Threshold for the gridsearch precision
 #' @param min.curvature Minimum possible value of curvature
 #' @param init.gridsize Gridsize to pick for good initialization
+#' @param gridsearch Whether to use grid-search for estimating curvature as opposed to a Newton Method.
 #'
 #' @return Estimated Curvature Value
 #' @export
 #'
 #' @examples EstimateKappa(1,1,1,sqrt(3/4))
 EstimateKappa <- function(dxy,dxz,dyz,dxm,
-                          max.iter = 10, ee.thresh = 0.001, abs.ee.thresh = 10**(-9),
-                          min.curvature = -5000, init.gridsize = 10000){
+                          max.iter = 10, ee.thresh = 0.001, abs.ee.thresh = 10**(-9), kappa.thresh = 0.0001,
+                          min.curvature = -5000, init.gridsize = 10000, gridsearch = T){
 
   # first check for whether the midpoint estimate is already too far for any curvature:
 
@@ -121,11 +123,12 @@ EstimateKappa <- function(dxy,dxz,dyz,dxm,
 
   # Picking good initialization for Newton Method
   max.curvature = (pi/max(c(dxy,dxz,dyz)))**2
+  kappa.upper = max.curvature
+  kappa.lower = min.curvature
 
   kap.seq <- c(seq(min.curvature,0, length.out = init.gridsize),
                seq(0,max.curvature - ee.thresh, length.out = init.gridsize))
   kap.seq <- kap.seq[-init.gridsize]
-
   suppressWarnings(d.xm.vec <- MidDist(kap.seq,dxy,dxz,dyz))
 
   min.dxm = min(d.xm.vec, na.rm = T)
@@ -140,47 +143,53 @@ EstimateKappa <- function(dxy,dxz,dyz,dxm,
     warning("Midpoint Distance is too small for embedding geometries")
     return(min.curvature)
   }
-  g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
 
+  if(gridsearch){
+    while(abs(kappa.upper - kappa.lower)  > kappa.thresh){
+      best.idx = which.min(abs(gEF(kap.seq,dxy,dxz,dyz,dxm)))
+      kappa.est = kap.seq[best.idx]
+      kappa.upper = kap.seq[min(c(best.idx + 1, length(kap.seq)))]
+      kappa.lower = kap.seq[max(c(best.idx - 1, 1))]
+      kap.seq = seq(kappa.lower, kappa.upper, length.out = init.gridsize)
+    }
+    return(kappa.est)
+  } else {
+    g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
 
-  #Find the first endpoint
-  kappa.endpoint = which.max(g.vec > 0 & is.finite(g.vec))
-  kappa.max <- kap.seq[kappa.endpoint]
-  grid.size <- kap.seq[kappa.endpoint] - kap.seq[kappa.endpoint - 1]
-  kappa.max <- kappa.max + 2*grid.size
-  kappa.min <- kappa.max - 5*grid.size
+    #Find the first endpoint
+    kappa.endpoint = which.max(g.vec > 0 & is.finite(g.vec))
+    kappa.max <- kap.seq[kappa.endpoint]
+    grid.size <- kap.seq[kappa.endpoint] - kap.seq[kappa.endpoint - 1]
+    kappa.max <- kappa.max + 2*grid.size
+    kappa.min <- kappa.max - 5*grid.size
 
-  kap.seq <- seq(kappa.min,min(kappa.max, max.curvature - ee.thresh), length.out = init.gridsize)
+    kap.seq <- seq(kappa.min,min(kappa.max, max.curvature - ee.thresh), length.out = init.gridsize)
 
-  g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
-  kappa.init <- kap.seq[which.min(abs(g.vec))]
+    g.vec <- gEF(kap.seq,dxy,dxz,dyz,dxm)
+    kappa.init <- kap.seq[which.min(abs(g.vec))]
 
-  #plot(kap.seq, g.vec)
-  #plot(kap.seq, g.vec, xlim = c(-10,max.curvature), ylim = c(-10,10))
+    kappa.prev = kappa.init
+    rel.change = Inf
+    iter = 0
+    kappa.seq <- c(kappa.prev)
+    rel.change.seq <- c()
 
+    while((abs(gEF(kappa.prev,dxy,dxz,dyz,dxm)) > abs.ee.thresh ) & (rel.change > ee.thresh & iter < max.iter & kappa.prev < max.curvature & kappa.prev > min.curvature)){
+      kappa.next = kappa.prev - gEF(kappa.prev,dxy,dxz,dyz,dxm)/gGradKappa(kappa.prev,dxy,dxz,dyz,dxm)
+      rel.change = abs(1 - abs(gEF(kappa.next,dxy,dxz,dyz,dxm))/abs(gEF(kappa.prev,dxy,dxz,dyz,dxm)))
+      kappa.seq <- c(kappa.seq,kappa.next)
+      rel.change.seq <- c(rel.change.seq, rel.change)
 
+      kappa.old = kappa.prev
+      kappa.prev = kappa.next
 
-  kappa.prev = kappa.init
-  rel.change = Inf
-  iter = 0
-  kappa.seq <- c(kappa.prev)
-  rel.change.seq <- c()
+      iter = iter + 1
+    }
+    # cases for impossible midpoint distances
 
-  while((abs(gEF(kappa.prev,dxy,dxz,dyz,dxm)) > abs.ee.thresh ) & (rel.change > ee.thresh & iter < max.iter & kappa.prev < max.curvature & kappa.prev > min.curvature)){
-    kappa.next = kappa.prev - gEF(kappa.prev,dxy,dxz,dyz,dxm)/gGradKappa(kappa.prev,dxy,dxz,dyz,dxm)
-    rel.change = abs(1 - abs(gEF(kappa.next,dxy,dxz,dyz,dxm))/abs(gEF(kappa.prev,dxy,dxz,dyz,dxm)))
-    kappa.seq <- c(kappa.seq,kappa.next)
-    rel.change.seq <- c(rel.change.seq, rel.change)
-
-    kappa.old = kappa.prev
-    kappa.prev = kappa.next
-
-    iter = iter + 1
+    kappa.est = kappa.prev
+    return(kappa.est)
   }
-  # cases for impossible midpoint distances
-
-  kappa.est = kappa.prev
-  return(kappa.est)
 }
 
 

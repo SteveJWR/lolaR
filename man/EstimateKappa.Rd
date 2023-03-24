@@ -12,8 +12,10 @@ EstimateKappa(
   max.iter = 10,
   ee.thresh = 0.001,
   abs.ee.thresh = 10^(-9),
+  kappa.thresh = 1e-04,
   min.curvature = -5000,
-  init.gridsize = 10000
+  init.gridsize = 10000,
+  gridsearch = T
 )
 }
 \arguments{
@@ -31,9 +33,13 @@ EstimateKappa(
 
 \item{abs.ee.thresh}{Threshold for the absolute value of the solution of the estimating function}
 
+\item{kappa.thresh}{Threshold for the gridsearch precision}
+
 \item{min.curvature}{Minimum possible value of curvature}
 
 \item{init.gridsize}{Gridsize to pick for good initialization}
+
+\item{gridsearch}{Whether to use grid-search for estimating curvature as opposed to a Newton Method.}
 }
 \value{
 Estimated Curvature Value
