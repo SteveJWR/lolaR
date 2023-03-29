@@ -347,32 +347,37 @@ SubSampleConstantCurvatureTest <- function(A,clique.set,reference.set,
 #
 #' Compute the Constant Curvature Test using Multiple Thresholds. Used in replicating the simulations.
 #'
-#' @param A Adjacency matrix
-#' @param clique.set indices of where the cliques are located in A
-#' @param D.subsample list of subsampled Distance Matrices
+#' @param D.hat initial estimated distance matrix
+#' @param D.subsample list of subsampled distance matrices
+#' @param reference.set reference set of selected midpoints and filtered reference points
 #' @param tri.const.seq sequence of filtered x.values
-#' @param J number of midpoints
 #' @param verbose print details
 #'
 #' @return Test of constant curvature using multiple thresholds
 #' @export
 #'
 # @examples
-SubSampleConstantCurvatureTestMultipleThresholds <- function(A, clique.set,
-                                                             D.subsample, tri.const.seq,
-                                                             J = 3, verbose = F){
+SubSampleConstantCurvatureTestMultipleThresholds <- function(D.hat,D.subsample, reference.set,
+                                                             tri.const.seq, verbose = F){
   output.data <- matrix(rep(NA,2*length(tri.const.seq)), ncol = 2)
   output.data <- as.data.frame(output.data)
   colnames(output.data) <- c("threshold.constant", "p.value")
   B <- length(D.subsample)
-  D.hat <- lolaR::EstimateD(A, clique.set)
+  J <- length(reference.set)
+
   for(k in seq(length(tri.const.seq))){
+    if(verbose){
+      cat(paste0("Constant: ", k, "/", length(tri.const.seq), end = "\r"))
+    }
     tri.const <- tri.const.seq[k]
-    reference.set <- selectReference(D.hat,
-                                     J = J,
-                                     tri.const = tri.const)
-
-
+    reference.set.tmp = reference.set
+    for(j in seq(J)){
+      y <- reference.set.tmp[[j]]$y
+      z <- reference.set.tmp[[j]]$z
+      m <- reference.set.tmp[[j]]$m
+      x.set.tmp <- filter_indices(D.hat,y,z,m, tri.const = tri.const)
+      reference.set.tmp[[j]]$xset = x.set.tmp
+    }
     upper.bound.sub <- rep(NA, B)
     lower.bound.sub <- rep(NA, B)
     for(b in seq(B)){
@@ -380,11 +385,12 @@ SubSampleConstantCurvatureTestMultipleThresholds <- function(A, clique.set,
       upper.min <- Inf
       lower.max <- -Inf
       for(j in seq(J)){
-        y <- reference.set[[j]][["y"]]
-        z <- reference.set[[j]][["z"]]
-        m <- reference.set[[j]][["m"]]
-        x.set <- reference.set[[j]][["xset"]]
+        y <- reference.set.tmp[[j]][["y"]]
+        z <- reference.set.tmp[[j]][["z"]]
+        m <- reference.set.tmp[[j]][["m"]]
+        x.set <- reference.set.tmp[[j]][["xset"]]
         bounds <- estimateBounds(D.hat.sub, y,z,m,x.set)
+
         upper.min <- min(c(upper.min, median(bounds$upper.bounds)))
         lower.max <- max(c(lower.max, median(bounds$lower.bounds)))
         upper.bound.sub[b] <- upper.min
@@ -397,6 +403,7 @@ SubSampleConstantCurvatureTestMultipleThresholds <- function(A, clique.set,
   }
   return(output.data)
 }
+
 
 
 # Overlapping Bounds p-value

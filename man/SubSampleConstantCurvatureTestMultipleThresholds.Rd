@@ -5,24 +5,21 @@
 \title{Compute the Constant Curvature Test using Multiple Thresholds. Used in replicating the simulations.}
 \usage{
 SubSampleConstantCurvatureTestMultipleThresholds(
-  A,
-  clique.set,
+  D.hat,
   D.subsample,
+  reference.set,
   tri.const.seq,
-  J = 3,
   verbose = F
 )
 }
 \arguments{
-\item{A}{Adjacency matrix}
+\item{D.hat}{initial estimated distance matrix}
 
-\item{clique.set}{indices of where the cliques are located in A}
+\item{D.subsample}{list of subsampled distance matrices}
 
-\item{D.subsample}{list of subsampled Distance Matrices}
+\item{reference.set}{reference set of selected midpoints and filtered reference points}
 
 \item{tri.const.seq}{sequence of filtered x.values}
-
-\item{J}{number of midpoints}
 
 \item{verbose}{print details}
 }
