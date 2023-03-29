@@ -212,47 +212,50 @@ midpoint_objective <- function(dym,dzm,dyz){
 optimal_midpoint_search <- function(D,top.k = 1, d.yz.min = 1.0,d.yz.max = 2.5, subset){
 
   K <- nrow(D)
-  if(missing(subset)){
+  if (missing(subset)) {
     subset = 1:K
   }
-  idx.set <- expand.grid(subset,subset,subset)
-  idx.set <- idx.set[idx.set[,1] < idx.set[,2] & idx.set[,2] != idx.set[,3] & idx.set[,1] != idx.set[,3],]
+  obj.upper.bound = 4*max(D)^2/min(D[D > 0])^2
+
+  idx.set <- expand.grid(subset, subset, subset)
+  idx.set <- idx.set[idx.set[, 1] < idx.set[, 2] & idx.set[,2] != idx.set[, 3] & idx.set[, 1] != idx.set[, 3], ]
   n.idx <- nrow(idx.set)
-  obj.val <- sapply(1:n.idx, function(i){
-    y = idx.set[i,1]
-    z = idx.set[i,2]
-    m = idx.set[i,3]
-    dyz <- D[y,z]
-    dym <- D[y,m]
-    dzm <- D[z,m]
-
-    dist.filter <- ifelse(dzm*dym*dyz == Inf, NaN, 1)
-
-    obj.tmp = midpoint_objective(dzm,dym,dyz)*dist.filter
-    out <- abs(obj.tmp - 1/2) + abs(dym - dzm)/dyz + Inf*(dyz > d.yz.max) +  Inf*(dyz < d.yz.min)
+  obj.val <- sapply(1:n.idx, function(i) {
+    y = idx.set[i, 1]
+    z = idx.set[i, 2]
+    m = idx.set[i, 3]
+    dyz <- D[y, z]
+    dym <- D[y, m]
+    dzm <- D[z, m]
+    dist.filter <- ifelse(dzm * dym * dyz == Inf, NaN, 1)
+    obj = midpoint_objective(dzm, dym, dyz) * dist.filter
+    out <- abs(obj - 1/2) + abs(dym - dzm)/dyz + obj.upper.bound *
+      (dyz > d.yz.max) + obj.upper.bound * (dyz < d.yz.min)
     return(out)
   })
 
   sort.obj <- obj.val[order(obj.val)]
-  ranked.idx <- idx.set[order(obj.val),]
+  ranked.idx <- idx.set[order(obj.val), ]
   selected.set <- c()
   best.pairs <- matrix(NA, nrow = 0, ncol = 6)
-
   i = 1
-  # stops the loop if we do not have a full top k which don't overlap
-  while(nrow(best.pairs) < top.k & i <= nrow(ranked.idx)){
-    if(!(any(as.vector(ranked.idx[i,]) %in% selected.set))){
-      D.tmp <- D[as.numeric(ranked.idx[i,]),as.numeric(ranked.idx[i,])]
-      best.pairs <- rbind(best.pairs, c(as.numeric(ranked.idx[i,]), D.tmp[1,3],D.tmp[2,3], D.tmp[1,2]))
-      selected.set <- c(selected.set, c(ranked.idx[i,1],ranked.idx[i,2],ranked.idx[i,3]))
+  while (nrow(best.pairs) < top.k & i <= nrow(ranked.idx)) {
+    if (!(any(as.vector(ranked.idx[i, ]) %in% selected.set))) {
+      D.tmp <- D[as.numeric(ranked.idx[i, ]), as.numeric(ranked.idx[i,
+      ])]
+      best.pairs <- rbind(best.pairs, c(as.numeric(ranked.idx[i,
+      ]), D.tmp[1, 3], D.tmp[2, 3], D.tmp[1, 2]))
+      selected.set <- c(selected.set, c(ranked.idx[i, 1],
+                                        ranked.idx[i, 2], ranked.idx[i, 3]))
     }
-
-    i = i+1
+    i = i + 1
   }
-  colnames(best.pairs) <- c("y","z","m","dym", "dzm", "dyz")
+  colnames(best.pairs) <- c("y", "z", "m", "dym", "dzm", "dyz")
   rownames(best.pairs) <- NULL
   return(best.pairs)
 }
+
+
 
 
 

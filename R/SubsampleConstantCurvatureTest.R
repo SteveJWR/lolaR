@@ -280,7 +280,7 @@ selectReference <- function(D,J,tri.const = 1.4, d.yz.min = 1, d.yz.max = 5, sub
   return(out.list)
 }
 
-### TODO: Subsample version for
+
 #' Constant Curvature Test Based on Subsampling approaches.
 #'
 #' @param A Adjacency matrix
