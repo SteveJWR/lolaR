@@ -82,9 +82,9 @@ kappa_u <- function(dxy, dxz, dyz, dxm, dym, dzm,
 
 
   if(g.u.upper < 0 ) {
-    return(max.curvature)
+    return(max.curvature) # returns bound based on the worst case great circle distance
   } else if(g.u.lower > 0) {
-    return(min.curvature)
+    return(max.curvature)
   } else {
     kappa.gap <- kappa.upper - kappa.lower
     while(kappa.gap > kappa.prec){
@@ -159,7 +159,7 @@ kappa_l <- function(dxy, dxz, dyz, dxm, dym, dzm,
 
 
   if(g.l.upper < 0 ) {
-    return(max.curvature)
+    return(min.curvature) # returns the worst case bound if no crossing
   } else if(g.l.lower > 0) {
     return(min.curvature)
   } else {
