@@ -345,8 +345,8 @@ EstimateKappaSet <- function(D,y,z,m,x.set){
 #' Estimate Curvature for an input Distance Matrix
 #'
 #' @param D Estimated Distance matrix
+#' @param J Number of midpoint sets to use
 #' @param tri.const Triangle Constant to use for selecting good x points
-#' @param num.midpoints Number of midpoint sets to use
 #' @param d.yz.min Minimum distance of y z pairs to consider
 #' @param d.yz.max Maximum distance of y z pairs to consider
 #' @param verbose Additional plotting details
@@ -354,8 +354,8 @@ EstimateKappaSet <- function(D,y,z,m,x.set){
 #' @return Return estimated values of curvature
 #' @export
 EstimateCurvature <- function(D,
+                              J = 3,
                               tri.const = 1.4,
-                              num.midpoints = 3,
                               d.yz.min = 1.5,
                               d.yz.max = Inf,
                               verbose = F){

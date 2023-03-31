@@ -6,8 +6,8 @@
 \usage{
 EstimateCurvature(
   D,
+  J = 3,
   tri.const = 1.4,
-  num.midpoints = 3,
   d.yz.min = 1.5,
   d.yz.max = Inf,
   verbose = F
@@ -16,9 +16,9 @@ EstimateCurvature(
 \arguments{
 \item{D}{Estimated Distance matrix}
 
-\item{tri.const}{Triangle Constant to use for selecting good x points}
+\item{J}{Number of midpoint sets to use}
 
-\item{num.midpoints}{Number of midpoint sets to use}
+\item{tri.const}{Triangle Constant to use for selecting good x points}
 
 \item{d.yz.min}{Minimum distance of y z pairs to consider}
 
