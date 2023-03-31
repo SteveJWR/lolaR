@@ -59,18 +59,14 @@ g_l <- function(kappa, dxy, dxz, dyz, dxm, dym, dzm){
 kappa_u <- function(dxy, dxz, dyz, dxm, dym, dzm,
                     kappa.prec = 10**(-5),
                     min.curvature = -1000){
-
-  # first check for whether the midpoint estimate is already too far for any curvature:
-
-  if(dxm < min(dxy,dxz) - (1/2)*dyz){
-    warning("Triangle Inequality is not satisfied")
-    return(-Inf)
-  }
-
-
   # Picking good initialization for the grid search.
   max.curvature = (pi/max(c(dxy,dxz,dyz,dxm,dym,dzm)))**2
 
+  # first check for whether the midpoint estimate is already too far for any curvature:
+  if(dxm < min(dxy,dxz) - (1/2)*dyz){
+    warning("Triangle Inequality is not satisfied")
+    return(max.curvature)
+  }
   kappa.upper <- max.curvature
   kappa.lower <- min.curvature
 
@@ -137,17 +133,16 @@ kappa_l <- function(dxy, dxz, dyz, dxm, dym, dzm,
                     kappa.prec = 10**(-5),
                     min.curvature = -1000){
 
-  # first check for whether the midpoint estimate is already too far for any curvature:
-
-  if(dxm < min(dxy,dxz) - (1/2)*dyz){
-    warning("Triangle Inequality is not satisfied")
-    return(-Inf)
-  }
 
 
   # Picking good initialization for the grid search.
   max.curvature = (pi/max(c(dxy,dxz,dyz,dxm,dym,dzm)))**2
 
+  # first check for whether the midpoint estimate is already too far for any curvature:
+  if(dxm < min(dxy,dxz) - (1/2)*dyz){
+    warning("Triangle Inequality is not satisfied")
+    return(min.curvature)
+  }
   kappa.upper <- max.curvature
   kappa.lower <- min.curvature
 

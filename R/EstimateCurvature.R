@@ -45,9 +45,11 @@ MidDist <- function(kappa,dxy,dxz,dyz){
   threshi = thresh*sqrt(-1 + 0i)
   #stability for inputs of acos
   acosarg = (1/2)*sec(dyz/2*sqrt(kappa + thresh*sign(kappa) + threshi))*(cos(dxy*sqrt(kappa + thresh*sign(kappa) + threshi)) + cos(dxz*sqrt(kappa + thresh*sign(kappa) + threshi)))
-  acosarg = pmin(Re(acosarg), 1)
-  acosarg = pmax(Re(acosarg), -1)
-  out.com <- (kappa != 0)*((1/(sqrt(kappa + thresh*sign(kappa) + threshi)))*acos(acosarg)) + (kappa == 0)*(sqrt((dxy**2 + dxz**2)/2 - dyz**2/4))
+  reacosarg = Re(acosarg)
+  reacosarg = pmin(reacosarg, 1)
+  reacosarg = pmax(reacosarg, -1)
+  acosarg = reacosarg + Im(acosarg)*sqrt(-1 + 0i)
+  out.com <- (kappa != 0)*((1/(sqrt(kappa + thresh*sign(kappa) + threshi)))*acos(acosarg)) + (kappa == 0)*(sqrt((dxy**2 + dxz**2)/2 - dyz**2/4 + 0i))
   out <- Re(out.com)
   return(out)
 }
